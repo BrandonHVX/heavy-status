@@ -80,6 +80,18 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Heavy Status" />
         <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.OneSignalDeferred = window.OneSignalDeferred || [];
+              OneSignalDeferred.push(async function(OneSignal) {
+                await OneSignal.init({
+                  appId: "704f7619-c14c-4769-aad8-f0584a197f44",
+                });
+              });
+            `,
+          }}
+        />
       </head>
       <body>
         <div className="min-h-screen bg-white text-gray-900 max-w-lg mx-auto relative shadow-[0_0_40px_rgba(0,0,0,0.06)]">
