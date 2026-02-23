@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { getPosts } from "@/lib/wordpress";
 import FeaturedClient from "./FeaturedClient";
 
+export const dynamic = 'force-dynamic';
 export const revalidate = 60;
 
 export const metadata: Metadata = {

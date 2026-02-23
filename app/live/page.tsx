@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { getPosts } from "@/lib/wordpress";
 import LiveClient from "./LiveClient";
 
+export const dynamic = 'force-dynamic';
 export const revalidate = 60;
 
 export const metadata: Metadata = {
