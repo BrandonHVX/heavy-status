@@ -86,6 +86,28 @@ export default function RootLayout({
   OneSignalDeferred.push(async function(OneSignal) {
     await OneSignal.init({
       appId: "704f7619-c14c-4769-aad8-f0584a197f44",
+      notifyButton: {
+        enable: true,
+      },
+      promptOptions: {
+        slidedown: {
+          prompts: [
+            {
+              type: "push",
+              autoPrompt: true,
+              text: {
+                actionMessage: "Get instant alerts for breaking news and stories from Heavy Status",
+                acceptButton: "Allow",
+                cancelButton: "Maybe Later",
+              },
+              delay: {
+                pageViews: 1,
+                timeDelay: 3,
+              },
+            }
+          ]
+        }
+      }
     });
   });
 `,
