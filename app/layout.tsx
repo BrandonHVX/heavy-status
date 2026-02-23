@@ -3,7 +3,6 @@ import { Cormorant_Garamond, DM_Sans, JetBrains_Mono } from "next/font/google";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import PageTransition from "@/components/PageTransition";
-import OneSignalInit from "@/components/OneSignalInit";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -79,17 +78,17 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Heavy Status" />
-        <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer />
+        <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              window.OneSignalDeferred = window.OneSignalDeferred || [];
-              OneSignalDeferred.push(async function(OneSignal) {
-                await OneSignal.init({
-                  appId: "704f7619-c14c-4769-aad8-f0584a197f44",
-                });
-              });
-            `,
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "704f7619-c14c-4769-aad8-f0584a197f44",
+    });
+  });
+`,
           }}
         />
       </head>
@@ -103,7 +102,6 @@ export default function RootLayout({
           </main>
           <BottomNav />
         </div>
-        <OneSignalInit />
       </body>
     </html>
   );
