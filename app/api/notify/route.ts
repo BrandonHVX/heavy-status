@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 const ONESIGNAL_APP_ID = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || "";
 const ONESIGNAL_API_KEY = process.env.ONESIGNAL_API_KEY || "";
+const SITE_URL = process.env.SITE_URL || "https://news-pwa.vercel.app";
 
 function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, "").replace(/&[^;]+;/g, " ").trim();
 }
+
+export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,18 +28,29 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    const title = body.post_title || body.title || "New Post on Heavy Status";
+    const postStatus = body.post_status || body.status || "";
+    if (postStatus && postStatus !== "publish") {
+      return NextResponse.json({
+        skipped: true,
+        reason: `Post status is "${postStatus}", not "publish"`,
+      });
+    }
+
+    const title =
+      body.post_title || body.title || "New Post on Heavy Status";
     const excerpt = body.post_excerpt || body.excerpt || "";
     const slug = body.post_name || body.slug || "";
-    const imageUrl = body.featured_image || body.image || "";
+    const imageUrl =
+      body.post_thumbnail_url ||
+      body.featured_image ||
+      body.image ||
+      "";
 
     const message = excerpt
       ? stripHtml(excerpt).substring(0, 200)
       : "Check out the latest news on Heavy Status!";
 
-    const url = slug
-      ? `${process.env.SITE_URL || "https://news-pwa.vercel.app"}/article/${slug}`
-      : process.env.SITE_URL || "https://news-pwa.vercel.app";
+    const url = slug ? `${SITE_URL}/article/${slug}` : SITE_URL;
 
     const notificationPayload: any = {
       app_id: ONESIGNAL_APP_ID,
@@ -83,6 +97,8 @@ export async function POST(request: NextRequest) {
       success: true,
       notification_id: result.id,
       recipients: result.recipients,
+      post_title: stripHtml(title),
+      post_url: url,
     });
   } catch (error: any) {
     console.error("Webhook error:", error);
@@ -97,6 +113,6 @@ export async function GET() {
   return NextResponse.json({
     status: "Webhook endpoint active",
     usage:
-      "POST with { title, excerpt, slug, image } to send push notification",
+      "Configure WP Webhooks to POST to this URL when a new post is published. Payload fields: post_title, post_excerpt, post_name, post_status, post_thumbnail_url",
   });
 }
