@@ -6,7 +6,7 @@ const ONESIGNAL_APP_ID = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || "";
 const ONESIGNAL_API_KEY = process.env.ONESIGNAL_API_KEY || "";
 const SITE_URL = process.env.SITE_URL || "https://heavy-status.com";
 
-let lastCheckedDate: string | null = null;
+const CHECK_WINDOW_MINUTES = 10;
 
 function stripHtml(html: string): string {
   return html
@@ -15,10 +15,19 @@ function stripHtml(html: string): string {
     .trim();
 }
 
-async function getLatestPosts(): Promise<any[]> {
+async function getRecentPosts(): Promise<any[]> {
+  const cutoff = new Date(Date.now() - CHECK_WINDOW_MINUTES * 60 * 1000);
+  const afterDate = cutoff.toISOString();
+
   const query = `
-    query LatestPosts {
-      posts(first: 5, where: { orderby: { field: DATE, order: DESC } }) {
+    query RecentPosts($after: String!) {
+      posts(
+        first: 10,
+        where: {
+          orderby: { field: DATE, order: DESC },
+          dateQuery: { after: { year: ${cutoff.getUTCFullYear()}, month: ${cutoff.getUTCMonth() + 1}, day: ${cutoff.getUTCDate()} } }
+        }
+      ) {
         nodes {
           databaseId
           title
@@ -38,14 +47,45 @@ async function getLatestPosts(): Promise<any[]> {
   const response = await fetch(GRAPHQL_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query }),
+    body: JSON.stringify({ query, variables: { after: afterDate } }),
     cache: "no-store",
   });
 
   if (!response.ok) throw new Error("Failed to fetch posts from WordPress");
 
   const json = await response.json();
-  return json.data?.posts?.nodes || [];
+  const posts = json.data?.posts?.nodes || [];
+
+  return posts.filter(
+    (post: any) => new Date(post.date) >= cutoff
+  );
+}
+
+async function getAlreadySentIds(): Promise<Set<string>> {
+  const isV2Key = ONESIGNAL_API_KEY.startsWith("os_v2_");
+  const apiUrl = isV2Key
+    ? `https://api.onesignal.com/notifications?app_id=${ONESIGNAL_APP_ID}&limit=20`
+    : `https://onesignal.com/api/v1/notifications?app_id=${ONESIGNAL_APP_ID}&limit=20`;
+  const authHeader = isV2Key
+    ? `Key ${ONESIGNAL_API_KEY}`
+    : `Basic ${ONESIGNAL_API_KEY}`;
+
+  try {
+    const response = await fetch(apiUrl, {
+      headers: { Authorization: authHeader },
+      cache: "no-store",
+    });
+    if (!response.ok) return new Set();
+    const data = await response.json();
+    const notifications = data.notifications || [];
+    const urls = new Set<string>();
+    for (const n of notifications) {
+      if (n.url) urls.add(n.url);
+    }
+    return urls;
+  } catch {
+    return new Set();
+  }
 }
 
 async function sendNotification(post: any): Promise<any> {
@@ -90,6 +130,8 @@ async function sendNotification(post: any): Promise<any> {
   return response.json();
 }
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     if (!ONESIGNAL_API_KEY || !ONESIGNAL_APP_ID) {
@@ -99,32 +141,29 @@ export async function GET() {
       );
     }
 
-    const posts = await getLatestPosts();
+    const [recentPosts, alreadySentUrls] = await Promise.all([
+      getRecentPosts(),
+      getAlreadySentIds(),
+    ]);
 
-    if (posts.length === 0) {
-      return NextResponse.json({ message: "No posts found", notified: 0 });
-    }
-
-    const latestPostDate = posts[0].date;
-
-    if (!lastCheckedDate) {
-      lastCheckedDate = latestPostDate;
+    if (recentPosts.length === 0) {
       return NextResponse.json({
-        message: "Initialized. Will notify on next new post.",
-        latest_post: posts[0].title,
-        latest_date: latestPostDate,
+        message: "No new posts in the last " + CHECK_WINDOW_MINUTES + " minutes",
         notified: 0,
       });
     }
 
-    const newPosts = posts.filter(
-      (post: any) => new Date(post.date) > new Date(lastCheckedDate!)
-    );
+    const newPosts = recentPosts.filter((post: any) => {
+      const postUrl = post.slug
+        ? `${SITE_URL}/article/${post.slug}`
+        : SITE_URL;
+      return !alreadySentUrls.has(postUrl);
+    });
 
     if (newPosts.length === 0) {
       return NextResponse.json({
-        message: "No new posts since last check",
-        last_checked: lastCheckedDate,
+        message: "Recent posts already notified",
+        recent_count: recentPosts.length,
         notified: 0,
       });
     }
@@ -132,10 +171,8 @@ export async function GET() {
     const results = [];
     for (const post of newPosts) {
       const result = await sendNotification(post);
-      results.push({ title: post.title, result });
+      results.push({ title: post.title, slug: post.slug, result });
     }
-
-    lastCheckedDate = latestPostDate;
 
     return NextResponse.json({
       message: `Sent ${newPosts.length} notification(s)`,
