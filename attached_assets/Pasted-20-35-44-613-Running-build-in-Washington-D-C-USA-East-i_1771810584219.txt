@@ -1,0 +1,41 @@
+20:35:44.613 Running build in Washington, D.C., USA (East) – iad1
+20:35:44.613 Build machine configuration: 4 cores, 8 GB
+20:35:44.738 Cloning github.com/BrandonHVX/heavy-status (Branch: main, Commit: 20217c1)
+20:35:44.996 Cloning completed: 258.000ms
+20:35:46.535 Restored build cache from previous deployment (E5Av9vPVQefhPEyR67DLriytHGHr)
+20:35:47.090 Running "vercel build"
+20:35:47.630 Vercel CLI 50.22.0
+20:35:47.917 Installing dependencies...
+20:35:49.247 
+20:35:49.247 up to date in 1s
+20:35:49.247 
+20:35:49.248 83 packages are looking for funding
+20:35:49.248   run `npm fund` for details
+20:35:49.279 Detected Next.js version: 16.1.6
+20:35:49.284 Running "npm run build"
+20:35:49.385 
+20:35:49.386 > rest-express@1.0.0 build
+20:35:49.386 > next build
+20:35:49.386 
+20:35:50.279 ▲ Next.js 16.1.6 (Turbopack)
+20:35:50.280 
+20:35:50.315   Creating an optimized production build ...
+20:35:55.370 ✓ Compiled successfully in 4.7s
+20:35:55.373   Running TypeScript ...
+20:35:59.323   Collecting page data using 3 workers ...
+20:35:59.771   Generating static pages using 3 workers (0/11) ...
+20:35:59.796   Generating static pages using 3 workers (2/11) 
+20:36:02.300 Error occurred prerendering page "/featured". Read more: https://nextjs.org/docs/messages/prerender-error
+20:36:02.303 TypeError: fetch failed
+20:36:02.303     at async b (.next/server/chunks/ssr/[root-of-the-server]__ef4a59d1._.js:1:380)
+20:36:02.303     at async e (.next/server/chunks/ssr/[root-of-the-server]__ef4a59d1._.js:46:8)
+20:36:02.304     at async e (.next/server/chunks/ssr/[root-of-the-server]__c72bc777._.js:68:1463) {
+20:36:02.304   digest: '1850233894',
+20:36:02.304   [cause]: AggregateError: 
+20:36:02.304       at ignore-listed frames {
+20:36:02.304     code: 'ETIMEDOUT'
+20:36:02.304   }
+20:36:02.304 }
+20:36:02.304 Export encountered an error on /featured/page: /featured, exiting the build.
+20:36:02.318 ⨯ Next.js build worker exited with code: 1 and signal: null
+20:36:02.354 Error: Command "npm run build" exited with 1

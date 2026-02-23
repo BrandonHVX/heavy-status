@@ -1,0 +1,27 @@
+Next.js is commonly used with WordPress in a "headless" configuration, where WordPress serves purely as a content management system (CMS) and Next.js handles the front-end display. This approach leverages the familiar WordPress admin interface for content creators while providing the performance, flexibility, and modern developer experience of Next.js. 
+Medium
+Medium
+ +1
+How They Work Together
+In a headless setup, the front-end (Next.js) is decoupled from the back-end (WordPress). 
+Medium
+Medium
+WordPress as the CMS: Content is created and managed within the standard WordPress dashboard.
+Data Fetching: The Next.js application retrieves this content using the WordPress REST API (built-in) or, more commonly for performance and flexibility, with the WPGraphQL plugin.
+Next.js as the Front-end: Next.js uses techniques like Static Site Generation (SSG) or Server-Side Rendering (SSR) to render the pages, resulting in a fast, performant, and SEO-friendly website.
+Content Updates: Features like Next.js's Incremental Static Regeneration (ISR) and webhooks allow pages to be updated in the background without requiring a full site re-build and re-deployment every time content changes in WordPress. 
+Vercel
+Vercel
+ +4
+Key Benefits
+Performance: Decoupling from traditional PHP rendering leads to faster load times and better Core Web Vitals, which improves the user experience and SEO.
+Developer Experience: Developers can work within a modern React environment with powerful features like TypeScript support, automatic image optimization, and file-based routing.
+Editorial Control: Content teams continue to use the user-friendly WordPress dashboard and its extensive plugin ecosystem (like Advanced Custom Fields) for content management. 
+www.thetombomb.com
+www.thetombomb.com
+ +4
+Getting Started
+Several resources and starter kits are available to help you begin:
+Official Guide/Template: Vercel, the company behind Next.js, provides a detailed guide and a Next.js WordPress Starter template to quickly set up a project.
+GitHub Starters: Open-source projects like the one from gregrickaby/nextjs-wordpress offer a production-ready foundation using WPGraphQL and Tailwind CSS.
+Tutorials: Many step-by-step guides are available, such as on freeCodeCamp and YouTube, which walk you through the integration process. 

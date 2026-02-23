@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     template: "%s | Heavy Status",
   },
   description: "Stay informed with breaking news, featured stories, and live coverage from Heavy Status.",
-  metadataBase: new URL(process.env.SITE_URL || "https://heavy-status.com"),
+  metadataBase: new URL(process.env.SITE_URL || "https://news-pwa.vercel.app"),
   openGraph: {
     type: "website",
     siteName: "Heavy Status",

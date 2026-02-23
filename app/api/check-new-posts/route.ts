@@ -4,7 +4,7 @@ const GRAPHQL_URL =
   process.env.WORDPRESS_GRAPHQL_URL || "https://heavy-status.com/graphql";
 const ONESIGNAL_APP_ID = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || "";
 const ONESIGNAL_API_KEY = process.env.ONESIGNAL_API_KEY || "";
-const SITE_URL = process.env.SITE_URL || "https://heavy-status.com";
+const SITE_URL = process.env.SITE_URL || "https://news-pwa.vercel.app";
 
 function stripHtml(html: string): string {
   return html

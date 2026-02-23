@@ -35,8 +35,8 @@ export async function POST(request: NextRequest) {
       : "Check out the latest news on Heavy Status!";
 
     const url = slug
-      ? `${process.env.SITE_URL || "https://heavy-status.com"}/article/${slug}`
-      : process.env.SITE_URL || "https://heavy-status.com";
+      ? `${process.env.SITE_URL || "https://news-pwa.vercel.app"}/article/${slug}`
+      : process.env.SITE_URL || "https://news-pwa.vercel.app";
 
     const notificationPayload: any = {
       app_id: ONESIGNAL_APP_ID,
