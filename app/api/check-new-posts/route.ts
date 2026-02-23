@@ -6,8 +6,6 @@ const ONESIGNAL_APP_ID = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || "";
 const ONESIGNAL_API_KEY = process.env.ONESIGNAL_API_KEY || "";
 const SITE_URL = process.env.SITE_URL || "https://heavy-status.com";
 
-const CHECK_WINDOW_MINUTES = 10;
-
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]*>/g, "")
@@ -15,19 +13,10 @@ function stripHtml(html: string): string {
     .trim();
 }
 
-async function getRecentPosts(): Promise<any[]> {
-  const cutoff = new Date(Date.now() - CHECK_WINDOW_MINUTES * 60 * 1000);
-  const afterDate = cutoff.toISOString();
-
+async function getLatestPosts(): Promise<any[]> {
   const query = `
-    query RecentPosts($after: String!) {
-      posts(
-        first: 10,
-        where: {
-          orderby: { field: DATE, order: DESC },
-          dateQuery: { after: { year: ${cutoff.getUTCFullYear()}, month: ${cutoff.getUTCMonth() + 1}, day: ${cutoff.getUTCDate()} } }
-        }
-      ) {
+    query LatestPosts {
+      posts(first: 5, where: { orderby: { field: DATE, order: DESC } }) {
         nodes {
           databaseId
           title
@@ -47,25 +36,21 @@ async function getRecentPosts(): Promise<any[]> {
   const response = await fetch(GRAPHQL_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, variables: { after: afterDate } }),
+    body: JSON.stringify({ query }),
     cache: "no-store",
   });
 
   if (!response.ok) throw new Error("Failed to fetch posts from WordPress");
 
   const json = await response.json();
-  const posts = json.data?.posts?.nodes || [];
-
-  return posts.filter(
-    (post: any) => new Date(post.date) >= cutoff
-  );
+  return json.data?.posts?.nodes || [];
 }
 
-async function getAlreadySentIds(): Promise<Set<string>> {
+async function getRecentNotificationUrls(): Promise<Set<string>> {
   const isV2Key = ONESIGNAL_API_KEY.startsWith("os_v2_");
   const apiUrl = isV2Key
-    ? `https://api.onesignal.com/notifications?app_id=${ONESIGNAL_APP_ID}&limit=20`
-    : `https://onesignal.com/api/v1/notifications?app_id=${ONESIGNAL_APP_ID}&limit=20`;
+    ? `https://api.onesignal.com/notifications?app_id=${ONESIGNAL_APP_ID}&limit=50`
+    : `https://onesignal.com/api/v1/notifications?app_id=${ONESIGNAL_APP_ID}&limit=50`;
   const authHeader = isV2Key
     ? `Key ${ONESIGNAL_API_KEY}`
     : `Basic ${ONESIGNAL_API_KEY}`;
@@ -141,19 +126,16 @@ export async function GET() {
       );
     }
 
-    const [recentPosts, alreadySentUrls] = await Promise.all([
-      getRecentPosts(),
-      getAlreadySentIds(),
+    const [latestPosts, alreadySentUrls] = await Promise.all([
+      getLatestPosts(),
+      getRecentNotificationUrls(),
     ]);
 
-    if (recentPosts.length === 0) {
-      return NextResponse.json({
-        message: "No new posts in the last " + CHECK_WINDOW_MINUTES + " minutes",
-        notified: 0,
-      });
+    if (latestPosts.length === 0) {
+      return NextResponse.json({ message: "No posts found", notified: 0 });
     }
 
-    const newPosts = recentPosts.filter((post: any) => {
+    const newPosts = latestPosts.filter((post: any) => {
       const postUrl = post.slug
         ? `${SITE_URL}/article/${post.slug}`
         : SITE_URL;
@@ -162,8 +144,8 @@ export async function GET() {
 
     if (newPosts.length === 0) {
       return NextResponse.json({
-        message: "Recent posts already notified",
-        recent_count: recentPosts.length,
+        message: "All recent posts already notified",
+        checked: latestPosts.length,
         notified: 0,
       });
     }
